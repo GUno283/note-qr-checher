@@ -3,42 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <title>サッカーノート提出確認</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
-  <h2>QRコードを読み取って提出記録</h2>
-  <video id="preview" width="300" height="200"></video>
+  <h2>📷 サッカーノート提出確認</h2>
+  <div id="reader" style="width:300px;"></div>
   <p id="result">読み取り結果：なし</p>
-  <button onclick="startScan()">読み取り開始</button>
 
-  <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
-    function startScan() {
-      const html5QrCode = new Html5Qrcode("preview");
+    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+      document.getElementById("result").innerText = "読み取り結果：" + decodedText;
 
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length) {
-          let cameraId = devices[0].id;
-          html5QrCode.start(
-            cameraId,
-            { fps: 10, qrbox: 250 },
-            qrCodeMessage => {
-              document.getElementById("result").innerText = "読み取り結果：" + qrCodeMessage;
-              html5QrCode.stop();
-              sendToSheet(qrCodeMessage);
-            }
-          );
-        }
-      });
-    }
+      // 🔗 ここにあなたの Google Apps Script の URL を貼ってください
+      const GAS_URL = "https://script.google.com/macros/s/https://script.google.com/a/macros/sit-kashiwa.com/s/AKfycbzEPhGhXyaJIyGihxZBg4OoGQgHH3S0ofI5RffYwXNWLkKI_VE2P_M6uabCHvpOupqS/exec/exec";
 
-    function sendToSheet(name) {
-      fetch("【https://script.google.com/a/macros/sit-kashiwa.com/s/AKfycbzEPhGhXyaJIyGihxZBg4OoGQgHH3S0ofI5RffYwXNWLkKI_VE2P_M6uabCHvpOupqS/exec】", {
+      fetch(GAS_URL, {
         method: "POST",
         mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name })
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name: decodedText })
       });
-    }
+    };
+
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" }, // 背面カメラを優先
+      {
+        fps: 10,
+        qrbox: 250
+      },
+      qrCodeSuccessCallback
+    );
   </script>
 </body>
 </html>
