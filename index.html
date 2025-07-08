@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>サッカーノート提出確認</title>
+</head>
+<body>
+  <h2>QRコードを読み取って提出記録</h2>
+  <video id="preview" width="300" height="200"></video>
+  <p id="result">読み取り結果：なし</p>
+  <button onclick="startScan()">読み取り開始</button>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script>
+    function startScan() {
+      const html5QrCode = new Html5Qrcode("preview");
+
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+          let cameraId = devices[0].id;
+          html5QrCode.start(
+            cameraId,
+            { fps: 10, qrbox: 250 },
+            qrCodeMessage => {
+              document.getElementById("result").innerText = "読み取り結果：" + qrCodeMessage;
+              html5QrCode.stop();
+              sendToSheet(qrCodeMessage);
+            }
+          );
+        }
+      });
+    }
+
+    function sendToSheet(name) {
+      fetch("【https://script.google.com/a/macros/sit-kashiwa.com/s/AKfycbzEPhGhXyaJIyGihxZBg4OoGQgHH3S0ofI5RffYwXNWLkKI_VE2P_M6uabCHvpOupqS/exec】", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name })
+      });
+    }
+  </script>
+</body>
+</html>
